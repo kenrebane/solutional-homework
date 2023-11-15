@@ -1,11 +1,9 @@
 package solutional.ken.homework.controller;
 
 import lombok.AllArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import solutional.ken.homework.dto.OrderDto;
+import solutional.ken.homework.dto.OrderStatusDto;
 import solutional.ken.homework.service.Orders;
 
 import java.util.UUID;
@@ -21,7 +19,17 @@ public class OrdersController {
     }
 
     @GetMapping("/api/orders/{orderId}")
-    public OrderDto getOrderDetails(@PathVariable UUID orderId) {
+    public OrderDto getOrderDetails(
+            @PathVariable UUID orderId
+    ) {
         return orders.getOrderDetails(orderId);
+    }
+
+    @PatchMapping("/api/orders/{orderId}")
+    public OrderDto updateOrderStatus(
+            @PathVariable UUID orderId,
+            @RequestBody OrderStatusDto orderStatusDto
+    ) {
+        return orders.updateOrderStatus(orderId, orderStatusDto);
     }
 }
