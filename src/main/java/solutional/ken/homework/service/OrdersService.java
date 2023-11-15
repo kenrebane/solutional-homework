@@ -3,6 +3,7 @@ package solutional.ken.homework.service;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import solutional.ken.homework.dto.OrderDto;
+import solutional.ken.homework.dto.OrderProductDto;
 import solutional.ken.homework.dto.OrderStatusDto;
 import solutional.ken.homework.entity.OrderEntity;
 import solutional.ken.homework.entity.OrderProductEntity;
@@ -82,6 +83,13 @@ public class OrdersService implements Orders {
         repository.save(orderEntity);
 
         return mapper.fromEntityToDto(orderEntity);
+    }
+
+    @Override
+    public List<OrderProductDto> getOrderProducts(UUID orderId) {
+        OrderEntity orderEntity = this.getOrderEntityById(orderId);
+        OrderDto orderDto = mapper.fromEntityToDto(orderEntity);
+        return orderDto.getProducts();
     }
 
     private OrderEntity getOrderEntityById(

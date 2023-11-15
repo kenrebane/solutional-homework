@@ -3,6 +3,7 @@ package solutional.ken.homework.controller;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import solutional.ken.homework.dto.OrderDto;
+import solutional.ken.homework.dto.OrderProductDto;
 import solutional.ken.homework.dto.OrderStatusDto;
 import solutional.ken.homework.entity.ProductEntity;
 import solutional.ken.homework.repository.ProductsRepository;
@@ -46,5 +47,12 @@ public class OrdersController {
     ) {
         List<ProductEntity> productEntityList = productsRepository.findAllById(productIds);
         return orders.addProductsToOrder(orderId, productEntityList);
+    }
+
+    @GetMapping("/api/orders/{orderId}/products")
+    public List<OrderProductDto> getOrderProducts(
+            @PathVariable UUID orderId
+    ) {
+        return orders.getOrderProducts(orderId);
     }
 }
