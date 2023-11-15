@@ -4,14 +4,20 @@ import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import solutional.ken.homework.dto.OrderDto;
 import solutional.ken.homework.dto.OrderStatusDto;
+import solutional.ken.homework.entity.ProductEntity;
+import solutional.ken.homework.repository.ProductsRepository;
 import solutional.ken.homework.service.Orders;
+import solutional.ken.homework.service.Products;
 
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @RestController
 @AllArgsConstructor
 public class OrdersController {
     private Orders orders;
+    private ProductsRepository productsRepository;
 
     @PostMapping("/api/orders")
     public OrderDto createNewOrder() {
@@ -31,5 +37,14 @@ public class OrdersController {
             @RequestBody OrderStatusDto orderStatusDto
     ) {
         return orders.updateOrderStatus(orderId, orderStatusDto);
+    }
+
+    @PostMapping("/api/orders/{orderId}/products")
+    public OrderDto addProductsToOrder(
+            @PathVariable UUID orderId,
+            @RequestBody List<Integer> productIds
+    ) {
+        List<ProductEntity> productEntityList = productsRepository.findAllById(productIds);
+        return orders.addProductsToOrder(orderId, productEntityList);
     }
 }
