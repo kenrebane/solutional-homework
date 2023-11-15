@@ -22,4 +22,6 @@ public class OrderEntity {
     private OrderStatus status;
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private Set<OrderProductEntity> orderProducts = new HashSet<>();
+    @Embedded
+    private OrderAmounts amounts = new OrderAmounts();
 }

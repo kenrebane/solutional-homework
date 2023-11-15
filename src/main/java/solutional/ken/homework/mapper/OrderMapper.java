@@ -11,6 +11,10 @@ import solutional.ken.homework.entity.OrderProductEntity;
 @Mapper(componentModel = "spring")
 public interface OrderMapper {
     @Mapping(source = "orderProducts", target = "products", qualifiedByName = "orderProductEntityToDto")
+    @Mapping(source = "amounts.discount", target = "amounts.discount", numberFormat = "0.00")
+    @Mapping(source = "amounts.paid", target = "amounts.paid", numberFormat = "0.00")
+    @Mapping(source = "amounts.returns", target = "amounts.returns", numberFormat = "0.00")
+    @Mapping(source = "amounts.total", target = "amounts.total", numberFormat = "0.00")
     OrderDto fromEntityToDto(OrderEntity orderEntity);
 
     @Named("orderProductEntityToDto")

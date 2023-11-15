@@ -10,4 +10,5 @@ public class OrderDto {
     private String id;
     private String status;
     private List<OrderProductDto> products = new ArrayList<>();
+    private OrderAmountsDto amounts;
 }

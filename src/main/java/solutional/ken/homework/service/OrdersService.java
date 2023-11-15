@@ -73,6 +73,11 @@ public class OrdersService implements Orders {
             }
         }
 
+        for (OrderProductEntity orderProductEntity:orderEntity.getOrderProducts()) {
+            Double updatedTotal = orderEntity.getAmounts().getTotal() + orderProductEntity.getProduct().getPrice();
+            orderEntity.getAmounts().setTotal(updatedTotal);
+        }
+
         repository.save(orderEntity);
 
         return mapper.fromEntityToDto(orderEntity);
