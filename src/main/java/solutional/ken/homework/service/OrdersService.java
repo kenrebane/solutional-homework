@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import solutional.ken.homework.dto.OrderDto;
 import solutional.ken.homework.dto.OrderProductDto;
+import solutional.ken.homework.dto.OrderProductQuantityDto;
 import solutional.ken.homework.dto.OrderStatusDto;
 import solutional.ken.homework.entity.OrderEntity;
 import solutional.ken.homework.entity.OrderProductEntity;
@@ -90,6 +91,39 @@ public class OrdersService implements Orders {
         OrderEntity orderEntity = this.getOrderEntityById(orderId);
         OrderDto orderDto = mapper.fromEntityToDto(orderEntity);
         return orderDto.getProducts();
+    }
+
+    @Override
+    public OrderDto updateOrderProductQuantity(
+            UUID orderId,
+            ProductEntity productEntity,
+            OrderProductQuantityDto dto
+    ) {
+        OrderEntity orderEntity = this.getOrderEntityById(orderId);
+
+        Integer currentQuantity = 0;
+
+        for (OrderProductEntity orderProductEntity:orderEntity.getOrderProducts()) {
+            if (orderProductEntity.getProduct().getId().equals(productEntity.getId())) {
+                currentQuantity = orderProductEntity.getQuantity();
+                orderProductEntity.setQuantity(dto.getQuantity());
+            }
+        }
+
+        if (currentQuantity > dto.getQuantity()) {
+            Double amountToDeductFromTotal = dto.getQuantity() * productEntity.getPrice();
+            Double newTotalAmount = orderEntity.getAmounts().getTotal() - amountToDeductFromTotal;
+            orderEntity.getAmounts().setTotal(newTotalAmount);
+        }
+
+        if (currentQuantity < dto.getQuantity()) {
+            Double amountToAddToTotal = (dto.getQuantity() - currentQuantity) * productEntity.getPrice();
+            Double newTotalAmount = orderEntity.getAmounts().getTotal() + amountToAddToTotal;
+            orderEntity.getAmounts().setTotal(newTotalAmount);
+        }
+
+        repository.save(orderEntity);
+        return mapper.fromEntityToDto(orderEntity);
     }
 
     private OrderEntity getOrderEntityById(

@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import solutional.ken.homework.dto.OrderDto;
 import solutional.ken.homework.dto.OrderProductDto;
+import solutional.ken.homework.dto.OrderProductQuantityDto;
 import solutional.ken.homework.dto.OrderStatusDto;
 import solutional.ken.homework.entity.ProductEntity;
 import solutional.ken.homework.repository.ProductsRepository;
@@ -54,5 +55,15 @@ public class OrdersController {
             @PathVariable UUID orderId
     ) {
         return orders.getOrderProducts(orderId);
+    }
+
+    @PatchMapping("/api/orders/{orderId}/products/{productId}")
+    public OrderDto updateOrderProductQuantity(
+            @PathVariable UUID orderId,
+            @PathVariable Integer productId,
+            @RequestBody OrderProductQuantityDto dto
+    ) {
+        ProductEntity productEntity = productsRepository.findById(productId).orElseThrow();
+        return orders.updateOrderProductQuantity(orderId, productEntity, dto);
     }
 }
