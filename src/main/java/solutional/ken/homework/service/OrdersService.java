@@ -44,6 +44,7 @@ public class OrdersService implements Orders {
     ) {
         OrderEntity orderEntity = this.getOrderEntityById(orderId);
         orderEntity.setStatus(orderStatusDto.getStatus());
+        orderEntity.getAmounts().setPaid(orderEntity.getAmounts().getTotal());
         repository.save(orderEntity);
         return mapper.fromEntityToDto(orderEntity);
     }
