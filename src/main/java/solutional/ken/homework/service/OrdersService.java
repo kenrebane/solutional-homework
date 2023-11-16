@@ -41,6 +41,7 @@ public class OrdersService implements Orders {
             UUID orderId,
             OrderStatusDto orderStatusDto
     ) {
+        // Validate status change constraints, from new to paid only
         OrderEntity orderEntity = this.getOrderEntityById(orderId);
         orderEntity.setStatus(orderStatusDto.getStatus());
         orderEntity.getAmounts().setPaid(orderEntity.getAmounts().getTotal());
@@ -53,6 +54,7 @@ public class OrdersService implements Orders {
             UUID orderId,
             List<ProductEntity> productEntityList
     ) {
+        // Products can be added to order which is in status NEW
         OrderEntity orderEntity = this.getOrderEntityById(orderId);
         List<Integer> existingProductIds = orderEntity.getOrderProducts().stream()
                 .map((orderProductEntity) -> orderProductEntity.getProduct().getId()).toList();
@@ -61,7 +63,11 @@ public class OrdersService implements Orders {
             if (existingProductIds.contains(productEntity.getId())) {
                 for (OrderProductEntity orderProductEntity : orderEntity.getOrderProducts()) {
                     if (productEntity.getId().equals(orderProductEntity.getProduct().getId())) {
-                        orderProductEntity.addQuantity();
+                        if (orderProductEntity.getReplacedWith() == null) {
+                            orderProductEntity.addQuantity();
+                        } else {
+                            throw new RuntimeException("Order product has been replaced");
+                        }
                     }
                 }
             } else {
@@ -96,6 +102,7 @@ public class OrdersService implements Orders {
             ProductEntity productEntity,
             UpdateOrderProductQuantityDto dto
     ) {
+        // Order product quantity can only be updated if order is in status NEW
         OrderEntity orderEntity = this.getOrderEntityById(orderId);
 
         Integer currentQuantity = 0;
@@ -123,6 +130,7 @@ public class OrdersService implements Orders {
         return mapper.fromEntityToDto(orderEntity);
     }
 
+    // Replacement happens after product payment, so when replacing a product - return cash should be calculated for customer if replaced products total cost is less than the initial product cost
     @Override
     public OrderDto replaceOrderProduct(
             UUID orderId,
@@ -130,6 +138,10 @@ public class OrdersService implements Orders {
             ProductEntity replacementProduct,
             ReplaceOrderProductDto replaceWith
     ) {
+        // Replacements can only happen if order is in status PAID
+        if (productEntity.getId().equals(replaceWith.getProductId())) {
+            throw new RuntimeException("Can not replace product with the same product");
+        }
         OrderEntity orderEntity = this.getOrderEntityById(orderId);
 
         Double replacedProductTotalAmount = 0.00;
