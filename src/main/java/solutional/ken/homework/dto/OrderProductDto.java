@@ -9,4 +9,5 @@ public class OrderProductDto {
     private String name;
     private String price;
     private Integer quantity;
+    private ReplaceOrderProductDto replacedWith;
 }

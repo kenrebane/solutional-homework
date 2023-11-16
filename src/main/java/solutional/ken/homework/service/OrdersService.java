@@ -2,12 +2,10 @@ package solutional.ken.homework.service;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import solutional.ken.homework.dto.OrderDto;
-import solutional.ken.homework.dto.OrderProductDto;
-import solutional.ken.homework.dto.OrderProductQuantityDto;
-import solutional.ken.homework.dto.OrderStatusDto;
+import solutional.ken.homework.dto.*;
 import solutional.ken.homework.entity.OrderEntity;
 import solutional.ken.homework.entity.OrderProductEntity;
+import solutional.ken.homework.entity.OrderProductReplacedWith;
 import solutional.ken.homework.entity.ProductEntity;
 import solutional.ken.homework.exception.OrderNotFoundException;
 import solutional.ken.homework.repository.OrdersRepository;
@@ -15,7 +13,6 @@ import solutional.ken.homework.mapper.OrderMapper;
 import solutional.ken.homework.factory.OrderFactory;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -60,9 +57,9 @@ public class OrdersService implements Orders {
         List<Integer> existingProductIds = orderEntity.getOrderProducts().stream()
                 .map((orderProductEntity) -> orderProductEntity.getProduct().getId()).toList();
 
-        for (ProductEntity productEntity:productEntityList) {
+        for (ProductEntity productEntity : productEntityList) {
             if (existingProductIds.contains(productEntity.getId())) {
-                for (OrderProductEntity orderProductEntity:orderEntity.getOrderProducts()) {
+                for (OrderProductEntity orderProductEntity : orderEntity.getOrderProducts()) {
                     if (productEntity.getId().equals(orderProductEntity.getProduct().getId())) {
                         orderProductEntity.addQuantity();
                     }
@@ -76,7 +73,7 @@ public class OrdersService implements Orders {
             }
         }
 
-        for (OrderProductEntity orderProductEntity:orderEntity.getOrderProducts()) {
+        for (OrderProductEntity orderProductEntity : orderEntity.getOrderProducts()) {
             Double updatedTotal = orderEntity.getAmounts().getTotal() + orderProductEntity.getProduct().getPrice();
             orderEntity.getAmounts().setTotal(updatedTotal);
         }
@@ -97,13 +94,13 @@ public class OrdersService implements Orders {
     public OrderDto updateOrderProductQuantity(
             UUID orderId,
             ProductEntity productEntity,
-            OrderProductQuantityDto dto
+            UpdateOrderProductQuantityDto dto
     ) {
         OrderEntity orderEntity = this.getOrderEntityById(orderId);
 
         Integer currentQuantity = 0;
 
-        for (OrderProductEntity orderProductEntity:orderEntity.getOrderProducts()) {
+        for (OrderProductEntity orderProductEntity : orderEntity.getOrderProducts()) {
             if (orderProductEntity.getProduct().getId().equals(productEntity.getId())) {
                 currentQuantity = orderProductEntity.getQuantity();
                 orderProductEntity.setQuantity(dto.getQuantity());
@@ -123,6 +120,60 @@ public class OrdersService implements Orders {
         }
 
         repository.save(orderEntity);
+        return mapper.fromEntityToDto(orderEntity);
+    }
+
+    @Override
+    public OrderDto replaceOrderProduct(
+            UUID orderId,
+            ProductEntity productEntity,
+            ProductEntity replacementProduct,
+            ReplaceOrderProductDto replaceWith
+    ) {
+        OrderEntity orderEntity = this.getOrderEntityById(orderId);
+
+        Double replacedProductTotalAmount = 0.00;
+
+        for (OrderProductEntity orderProductEntity : orderEntity.getOrderProducts()) {
+            if (orderProductEntity.getProduct().getId().equals(productEntity.getId())) {
+                OrderProductReplacedWith replacedWith = new OrderProductReplacedWith();
+                replacedWith.setProductId(replaceWith.getProductId());
+                replacedWith.setQuantity(replaceWith.getQuantity());
+                orderProductEntity.setReplacedWith(replacedWith);
+
+                replacedProductTotalAmount = orderProductEntity.getProduct().getPrice() * orderProductEntity.getQuantity();
+
+                break;
+            }
+        }
+
+        Double newTotalAmountAfterRemovingReplacedProduct = orderEntity.getAmounts().getTotal() - replacedProductTotalAmount;
+        orderEntity.getAmounts().setTotal(newTotalAmountAfterRemovingReplacedProduct);
+
+
+        List<Integer> existingProductIds = orderEntity.getOrderProducts().stream()
+                .map((orderProductEntity) -> orderProductEntity.getProduct().getId()).toList();
+
+        if (existingProductIds.contains(replacementProduct.getId())) {
+            for (OrderProductEntity orderProductEntity : orderEntity.getOrderProducts()) {
+                if (replacementProduct.getId().equals(orderProductEntity.getProduct().getId())) {
+                    orderProductEntity.addQuantity();
+                }
+            }
+        } else {
+            OrderProductEntity orderProductEntity = new OrderProductEntity();
+            orderProductEntity.setOrder(orderEntity);
+            orderProductEntity.setProduct(replacementProduct);
+            orderProductEntity.addQuantity();
+            orderEntity.getOrderProducts().add(orderProductEntity);
+        }
+
+        Double replacementProductTotal = replaceWith.getQuantity() * replacementProduct.getPrice();
+        Double finalTotal = orderEntity.getAmounts().getTotal() + replacementProductTotal;
+        orderEntity.getAmounts().setTotal(finalTotal);
+
+        repository.save(orderEntity);
+
         return mapper.fromEntityToDto(orderEntity);
     }
 

@@ -3,6 +3,6 @@ package solutional.ken.homework.dto;
 import lombok.Data;
 
 @Data
-public class OrderProductQuantityDto {
+public class UpdateOrderProductQuantityDto {
     private Integer quantity;
 }

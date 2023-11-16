@@ -15,10 +15,12 @@ public class OrderProductEntity {
     @ManyToOne
     @JoinColumn(name="order_id", nullable=false)
     private OrderEntity order;
-    @OneToOne
-    @JoinColumn(name = "product_id", referencedColumnName = "id", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "product_id", nullable = false)
     private ProductEntity product;
     private Integer quantity = 0;
+    @Embedded
+    private OrderProductReplacedWith replacedWith;
 
     public void addQuantity() {
         this.quantity++;

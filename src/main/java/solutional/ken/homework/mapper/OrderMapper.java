@@ -5,6 +5,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import solutional.ken.homework.dto.OrderDto;
 import solutional.ken.homework.dto.OrderProductDto;
+import solutional.ken.homework.dto.ReplaceOrderProductDto;
 import solutional.ken.homework.entity.OrderEntity;
 import solutional.ken.homework.entity.OrderProductEntity;
 
@@ -25,6 +26,14 @@ public interface OrderMapper {
         orderProductDto.setName(orderProductEntity.getProduct().getName());
         orderProductDto.setPrice(orderProductEntity.getProduct().getPrice().toString());
         orderProductDto.setQuantity(orderProductEntity.getQuantity());
+
+        if (orderProductEntity.getReplacedWith() != null) {
+            ReplaceOrderProductDto replacedOrderProductDto = new ReplaceOrderProductDto();
+            replacedOrderProductDto.setProductId(orderProductEntity.getReplacedWith().getProductId());
+            replacedOrderProductDto.setQuantity(orderProductEntity.getReplacedWith().getQuantity());
+            orderProductDto.setReplacedWith(replacedOrderProductDto);
+        }
+
         return orderProductDto;
     }
 }

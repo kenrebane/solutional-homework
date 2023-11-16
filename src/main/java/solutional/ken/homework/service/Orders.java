@@ -1,9 +1,6 @@
 package solutional.ken.homework.service;
 
-import solutional.ken.homework.dto.OrderDto;
-import solutional.ken.homework.dto.OrderProductDto;
-import solutional.ken.homework.dto.OrderProductQuantityDto;
-import solutional.ken.homework.dto.OrderStatusDto;
+import solutional.ken.homework.dto.*;
 import solutional.ken.homework.entity.ProductEntity;
 
 import java.util.List;
@@ -15,5 +12,6 @@ public interface Orders {
     OrderDto updateOrderStatus(UUID orderId, OrderStatusDto orderStatusDto);
     OrderDto addProductsToOrder(UUID orderId, List<ProductEntity> productEntityList);
     List<OrderProductDto> getOrderProducts(UUID orderId);
-    OrderDto updateOrderProductQuantity(UUID orderId, ProductEntity productEntity, OrderProductQuantityDto dto);
+    OrderDto updateOrderProductQuantity(UUID orderId, ProductEntity productEntity, UpdateOrderProductQuantityDto dto);
+    OrderDto replaceOrderProduct(UUID orderId, ProductEntity productEntity, ProductEntity replacementProduct, ReplaceOrderProductDto replaceWith);
 }

@@ -2,17 +2,12 @@ package solutional.ken.homework.controller;
 
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import solutional.ken.homework.dto.OrderDto;
-import solutional.ken.homework.dto.OrderProductDto;
-import solutional.ken.homework.dto.OrderProductQuantityDto;
-import solutional.ken.homework.dto.OrderStatusDto;
+import solutional.ken.homework.dto.*;
 import solutional.ken.homework.entity.ProductEntity;
 import solutional.ken.homework.repository.ProductsRepository;
 import solutional.ken.homework.service.Orders;
-import solutional.ken.homework.service.Products;
 
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 @RestController
@@ -58,12 +53,24 @@ public class OrdersController {
     }
 
     @PatchMapping("/api/orders/{orderId}/products/{productId}")
-    public OrderDto updateOrderProductQuantity(
+    public OrderDto updateOrderProductQuantityOrReplaceOrderProduct(
             @PathVariable UUID orderId,
             @PathVariable Integer productId,
-            @RequestBody OrderProductQuantityDto dto
+            @RequestBody UpdateOrderProductQuantityOrReplaceOrderProductDto dto
     ) {
-        ProductEntity productEntity = productsRepository.findById(productId).orElseThrow();
-        return orders.updateOrderProductQuantity(orderId, productEntity, dto);
+        if (dto.getQuantity() != null) {
+            ProductEntity productEntity = productsRepository.findById(productId).orElseThrow();
+            UpdateOrderProductQuantityDto updateOrderProductQuantityDto = new UpdateOrderProductQuantityDto();
+            updateOrderProductQuantityDto.setQuantity(dto.getQuantity());
+            return orders.updateOrderProductQuantity(orderId, productEntity, updateOrderProductQuantityDto);
+        }
+
+        if (dto.getReplaceWith() != null) {
+            ProductEntity productToReplace = productsRepository.findById(productId).orElseThrow();
+            ProductEntity replacementProduct = productsRepository.findById(dto.getReplaceWith().getProductId()).orElseThrow();
+            return orders.replaceOrderProduct(orderId, productToReplace, replacementProduct, dto.getReplaceWith());
+        }
+
+        return null;
     }
 }
