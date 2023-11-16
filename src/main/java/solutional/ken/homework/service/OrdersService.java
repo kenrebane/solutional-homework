@@ -7,24 +7,22 @@ import solutional.ken.homework.entity.OrderEntity;
 import solutional.ken.homework.entity.OrderProductEntity;
 import solutional.ken.homework.entity.OrderProductReplacedWith;
 import solutional.ken.homework.entity.ProductEntity;
-import solutional.ken.homework.exception.OrderNotFoundException;
+import solutional.ken.homework.enums.OrderStatus;
 import solutional.ken.homework.repository.OrdersRepository;
 import solutional.ken.homework.mapper.OrderMapper;
-import solutional.ken.homework.factory.OrderFactory;
 
 import java.util.*;
 
 @Service
 @AllArgsConstructor
 public class OrdersService implements Orders {
+    private OrderData orderData;
     private OrdersRepository repository;
     private OrderMapper mapper;
-    private OrderFactory factory;
 
     @Override
     public OrderDto createNewOrder() {
-        OrderEntity orderEntity = factory.createNewOrderEntity();
-        repository.save(orderEntity);
+        OrderEntity orderEntity = orderData.createOrderWithStatus(OrderStatus.NEW);
         return mapper.fromEntityToDto(orderEntity);
     }
 
@@ -32,7 +30,7 @@ public class OrdersService implements Orders {
     public OrderDto getOrderDetails(
             UUID orderId
     ) {
-        OrderEntity orderEntity = this.getOrderEntityById(orderId);
+        OrderEntity orderEntity = orderData.getOrderById(orderId);
         return mapper.fromEntityToDto(orderEntity);
     }
 
@@ -42,7 +40,7 @@ public class OrdersService implements Orders {
             OrderStatusDto orderStatusDto
     ) {
         // Validate status change constraints, from new to paid only
-        OrderEntity orderEntity = this.getOrderEntityById(orderId);
+        OrderEntity orderEntity = orderData.getOrderById(orderId);
         orderEntity.setStatus(orderStatusDto.getStatus());
         orderEntity.getAmounts().setPaid(orderEntity.getAmounts().getTotal());
         repository.save(orderEntity);
@@ -55,7 +53,7 @@ public class OrdersService implements Orders {
             List<ProductEntity> productEntityList
     ) {
         // Products can be added to order which is in status NEW
-        OrderEntity orderEntity = this.getOrderEntityById(orderId);
+        OrderEntity orderEntity = orderData.getOrderById(orderId);
         List<Integer> existingProductIds = orderEntity.getOrderProducts().stream()
                 .map((orderProductEntity) -> orderProductEntity.getProduct().getId()).toList();
 
@@ -91,7 +89,7 @@ public class OrdersService implements Orders {
 
     @Override
     public List<OrderProductDto> getOrderProducts(UUID orderId) {
-        OrderEntity orderEntity = this.getOrderEntityById(orderId);
+        OrderEntity orderEntity = orderData.getOrderById(orderId);
         OrderDto orderDto = mapper.fromEntityToDto(orderEntity);
         return orderDto.getProducts();
     }
@@ -103,7 +101,7 @@ public class OrdersService implements Orders {
             UpdateOrderProductQuantityDto dto
     ) {
         // Order product quantity can only be updated if order is in status NEW
-        OrderEntity orderEntity = this.getOrderEntityById(orderId);
+        OrderEntity orderEntity = orderData.getOrderById(orderId);
 
         Integer currentQuantity = 0;
 
@@ -142,7 +140,7 @@ public class OrdersService implements Orders {
         if (productEntity.getId().equals(replaceWith.getProductId())) {
             throw new RuntimeException("Can not replace product with the same product");
         }
-        OrderEntity orderEntity = this.getOrderEntityById(orderId);
+        OrderEntity orderEntity = orderData.getOrderById(orderId);
 
         Double replacedProductTotalAmount = 0.00;
 
@@ -187,11 +185,5 @@ public class OrdersService implements Orders {
         repository.save(orderEntity);
 
         return mapper.fromEntityToDto(orderEntity);
-    }
-
-    private OrderEntity getOrderEntityById(
-            UUID orderId
-    ) {
-        return repository.findById(orderId).orElseThrow(OrderNotFoundException::new);
     }
 }

@@ -1,0 +1,27 @@
+package solutional.ken.homework.service;
+
+import org.springframework.stereotype.Service;
+import solutional.ken.homework.entity.OrderEntity;
+import solutional.ken.homework.enums.OrderStatus;
+import solutional.ken.homework.exception.OrderNotFoundException;
+import solutional.ken.homework.repository.OrdersRepository;
+
+import java.util.UUID;
+
+@Service
+public class OrderDataService implements OrderData {
+    private OrdersRepository repository;
+
+    @Override
+    public OrderEntity createOrderWithStatus(OrderStatus status) {
+        OrderEntity order = new OrderEntity();
+        order.setStatus(status);
+        repository.save(order);
+        return order;
+    }
+
+    @Override
+    public OrderEntity getOrderById(UUID orderId) {
+        return repository.findById(orderId).orElseThrow(OrderNotFoundException::new);
+    }
+}
