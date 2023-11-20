@@ -1,6 +1,9 @@
 package solutional.ken.homework.controller;
 
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import solutional.ken.homework.dto.*;
 import solutional.ken.homework.entity.ProductEntity;
@@ -28,12 +31,13 @@ public class OrdersController {
         return orders.getOrderDetails(orderId);
     }
 
-    @PatchMapping("/api/orders/{orderId}")
-    public OrderDto updateOrderStatus(
+    @PatchMapping(value = "/api/orders/{orderId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> updateOrderStatus(
             @PathVariable UUID orderId,
             @RequestBody OrderStatusDto orderStatusDto
     ) {
-        return orders.updateOrderStatus(orderId, orderStatusDto);
+        orders.updateOrderStatus(orderId, orderStatusDto);
+        return new ResponseEntity<>("OK", HttpStatus.OK);
     }
 
     @PostMapping("/api/orders/{orderId}/products")

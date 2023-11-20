@@ -40,11 +40,10 @@ public class OrdersService implements Orders {
             OrderStatusDto orderStatusDto
     ) {
         // Validate status change constraints, from new to paid only
-        OrderEntity orderEntity = orderData.getOrderById(orderId);
-        orderEntity.setStatus(orderStatusDto.getStatus());
-        orderEntity.getAmounts().setPaid(orderEntity.getAmounts().getTotal());
-        repository.save(orderEntity);
-        return mapper.fromEntityToDto(orderEntity);
+        OrderEntity order = orderData.getOrderById(orderId);
+        orderData.updateOrderStatus(order, orderStatusDto);
+        orderData.markOrderAsPaid(order);
+        return mapper.fromEntityToDto(order);
     }
 
     @Override
